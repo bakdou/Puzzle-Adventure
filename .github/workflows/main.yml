@@ -28,36 +28,14 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Doctor
-        run: flutter doctor
+      - name: Accept Android Licenses
+        run: yes | flutter doctor --android-licenses || true
+
+      - name: Clean project cache
+        run: flutter clean
 
       - name: Install dependencies
         run: flutter pub get
-
-      # FORCER LA MIGRATION V2 : Nettoie l'ancien code natif et force l'Embedding V2
-      - name: Force Android Embedding V2 Migration
-        run: |
-          # Supprime les vieux MainActivity java/kotlin
-          find android/app/src/main -name "MainActivity.java" -delete
-          find android/app/src/main -name "MainActivity.kt" -delete
-          
-          # Crée un nouveau MainActivity.kt compatible V2
-          TARGET_DIR="android/app/src/main/kotlin/com/example/puzzle_adventure"
-          mkdir -p "$TARGET_DIR"
-          cat << 'EOF' > "$TARGET_DIR/MainActivity.kt"
-          package com.example.puzzle_adventure
-
-          import io.flutter.embedding.android.FlutterActivity
-
-          class MainActivity: FlutterActivity() {
-          }
-          EOF
-
-          # S'assure que le Manifest contient la meta-data V2
-          MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
-          if ! grep -q "flutterEmbedding" "$MANIFEST_PATH"; then
-            sed -i '/<\/application>/i \    <meta-data\n        android:name="flutterEmbedding"\n        android:value="2" \/>' "$MANIFEST_PATH"
-          fi
 
       - name: Build APK
         run: flutter build apk --release
