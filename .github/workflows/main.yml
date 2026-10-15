@@ -5,45 +5,47 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch: # Permet de lancer le build manuellement depuis l'onglet Actions de GitHub
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Cloner le code source du dépôt
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Installer Java (JDK 17 requis pour Gradle 8 / Flutter moderne)
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      # 3. Installer le SDK Flutter (version stable récente)
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.x' # S'adapte parfaitement aux projets de 2024+
+          flutter-version: '3.19.x'
           channel: 'stable'
           cache: true
 
-      # 4. Vérifier la version de Flutter installée
       - name: Doctor
         run: flutter doctor
 
-      # 5. Récupérer les dépendances du projet (pub get)
       - name: Install dependencies
         run: flutter pub get
 
-      # 6. Compiler l'application en mode release (génère l'APK non signé)
+      # CORRECTION AUTOMATIQUE : Force l'Android Embedding V2 requis par les plugins récents
+      - name: Fix Android Embedding V2
+        run: |
+          MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
+          if [ -f "$MANIFEST_PATH" ] && ! grep -q "flutterEmbedding" "$MANIFEST_PATH"; then
+            echo "Injection de la meta-data flutterEmbedding v2..."
+            sed -i '/<\/application>/i \    <meta-data\n        android:name="flutterEmbedding"\n        android:value="2" \/>' "$MANIFEST_PATH"
+          fi
+
       - name: Build APK
         run: flutter build apk --release
 
-      # 7. Télécharger l'APK généré directement depuis les artefacts GitHub
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
