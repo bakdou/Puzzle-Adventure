@@ -26,10 +26,11 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Clean Legacy Java Files
-        run: rm -rf android/app/src/main/java
+      - name: Clean Legacy Files and Lockfile
+        run: |
+          rm -rf android/app/src/main/java
+          rm -f pubspec.lock
 
-      # Met à jour les contraintes de packages pour éviter le blocage de l'embedding v1
       - name: Upgrade Dependencies to V2 Compatible Versions
         run: |
           flutter pub upgrade --major-versions
