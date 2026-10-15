@@ -26,19 +26,17 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Clean Legacy Files and Lockfile
+      # Nettoyage radical de tous les caches de build et de Gradle
+      - name: Hard Clean Caches and Build Artifacts
         run: |
-          rm -rf android/app/src/main/java
-          rm -f pubspec.lock
-
-      - name: Upgrade Dependencies to V2 Compatible Versions
-        run: |
-          flutter pub upgrade --major-versions
-
-      - name: Clean and Get Dependencies
-        run: |
+          rm -rf android/.gradle
+          rm -rf android/app/build
+          rm -rf build
+          rm -rf .dart_tool
           flutter clean
-          flutter pub get
+
+      - name: Install dependencies
+        run: flutter pub get
 
       - name: Build APK
         run: flutter build apk --release
