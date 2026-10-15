@@ -22,21 +22,21 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.x'
           channel: 'stable'
           cache: true
 
-      # Nettoyage radical de tous les caches de build et de Gradle
-      - name: Hard Clean Caches and Build Artifacts
+      - name: Clean Legacy Files and Caches
         run: |
+          rm -rf android/app/src/main/java
+          rm -f pubspec.lock
           rm -rf android/.gradle
           rm -rf android/app/build
           rm -rf build
           rm -rf .dart_tool
-          flutter clean
 
-      - name: Install dependencies
-        run: flutter pub get
+      - name: Get Dependencies
+        run: |
+          flutter pub get
 
       - name: Build APK
         run: flutter build apk --release
