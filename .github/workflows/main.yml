@@ -34,12 +34,28 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # CORRECTION AUTOMATIQUE : Force l'Android Embedding V2 requis par les plugins récents
-      - name: Fix Android Embedding V2
+      # FORCER LA MIGRATION V2 : Nettoie l'ancien code natif et force l'Embedding V2
+      - name: Force Android Embedding V2 Migration
         run: |
+          # Supprime les vieux MainActivity java/kotlin
+          find android/app/src/main -name "MainActivity.java" -delete
+          find android/app/src/main -name "MainActivity.kt" -delete
+          
+          # Crée un nouveau MainActivity.kt compatible V2
+          TARGET_DIR="android/app/src/main/kotlin/com/example/puzzle_adventure"
+          mkdir -p "$TARGET_DIR"
+          cat << 'EOF' > "$TARGET_DIR/MainActivity.kt"
+          package com.example.puzzle_adventure
+
+          import io.flutter.embedding.android.FlutterActivity
+
+          class MainActivity: FlutterActivity() {
+          }
+          EOF
+
+          # S'assure que le Manifest contient la meta-data V2
           MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
-          if [ -f "$MANIFEST_PATH" ] && ! grep -q "flutterEmbedding" "$MANIFEST_PATH"; then
-            echo "Injection de la meta-data flutterEmbedding v2..."
+          if ! grep -q "flutterEmbedding" "$MANIFEST_PATH"; then
             sed -i '/<\/application>/i \    <meta-data\n        android:name="flutterEmbedding"\n        android:value="2" \/>' "$MANIFEST_PATH"
           fi
 
