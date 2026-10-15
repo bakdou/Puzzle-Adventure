@@ -3,8 +3,6 @@ name: Build Flutter APK
 on:
   push:
     branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
@@ -28,11 +26,10 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Accept Android Licenses
-        run: yes | flutter doctor --android-licenses || true
-
-      - name: Clean project cache
-        run: flutter clean
+      - name: Regenerate Clean Android V2 Platform
+        run: |
+          rm -rf android
+          flutter create . --platforms=android --org com.puzzleadventure
 
       - name: Install dependencies
         run: flutter pub get
